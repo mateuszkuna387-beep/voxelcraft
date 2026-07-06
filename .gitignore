@@ -1,0 +1,48 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Compiled
+*.o
+*.obj
+*.exe
+*.out
+*.app
+
+# Libraries
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Assets (generated)
+assets/textures/*.png
+assets/shaders/*.spv
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Toolchain / downloaded packages
+msys2/
+msys64/
+mingw64.7z
+mingw-install/
+w64devkit.zip
+winlibs-gcc.7z
+zstd_temp/
+
+# GLAD generators (not needed once generated)
+glad.zip
+glad_gen.zip
+glad_gen/
+glad_src/

@@ -1,0 +1,33 @@
+#pragma once
+
+#include "Types.h"
+
+constexpr i32 CHUNK_SIZE_X = 16;
+constexpr i32 CHUNK_SIZE_Y = 64;
+constexpr i32 CHUNK_SIZE_Z = 16;
+
+constexpr i32 CHUNK_VOLUME = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+
+constexpr f32 BLOCK_SIZE = 1.0f;
+
+constexpr f32 PLAYER_HEIGHT = 1.8f;
+constexpr f32 PLAYER_SPEED = 4.5f;
+constexpr f32 PLAYER_JUMP_SPEED = 8.0f;
+constexpr f32 GRAVITY = -20.0f;
+
+constexpr f32 MOUSE_SENSITIVITY = 0.002f;
+constexpr f32 FOV = 75.0f;
+constexpr f32 NEAR_PLANE = 0.1f;
+constexpr f32 FAR_PLANE = 1000.0f;
+
+constexpr i32 RENDER_DISTANCE = 8;
+
+constexpr BlockID BLOCK_AIR = 0;
+constexpr BlockID BLOCK_STONE = 1;
+constexpr BlockID BLOCK_DIRT = 2;
+constexpr BlockID BLOCK_GRASS = 3;
+constexpr BlockID BLOCK_WOOD = 4;
+constexpr BlockID BLOCK_LEAVES = 5;
+constexpr BlockID BLOCK_SAND = 6;
+constexpr BlockID BLOCK_WATER = 7;
+constexpr BlockID BLOCK_BEDROCK = 8;
