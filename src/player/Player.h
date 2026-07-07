@@ -18,10 +18,11 @@ public:
 
     void setPosition(const glm::vec3& pos) { m_position = pos; }
     void setRotation(const glm::vec3& rot) { m_rotation = rot; }
+    bool isOnGround() const { return m_onGround; }
 
 private:
     void applyGravity(f32 dt);
-    void resolveCollisions(World* world);
+    void collideAxis(i32 axis, World* world);
 
     glm::vec3 m_position{ 0.0f, 64.0f, 0.0f };
     glm::vec3 m_rotation{ 0.0f, 0.0f, 0.0f };

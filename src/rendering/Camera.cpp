@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "core/Constants.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -7,7 +8,7 @@ Camera::Camera(u32 width, u32 height) {
 }
 
 void Camera::follow(const glm::vec3& position, const glm::vec3& rotation) {
-    m_position = position;
+    m_position = position + glm::vec3(0.0f, PLAYER_EYE_HEIGHT, 0.0f);
     m_rotation = rotation;
 }
 

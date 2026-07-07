@@ -3,17 +3,24 @@
 #include "Types.h"
 
 constexpr i32 CHUNK_SIZE_X = 16;
-constexpr i32 CHUNK_SIZE_Y = 64;
+constexpr i32 CHUNK_SIZE_Y = 100;
 constexpr i32 CHUNK_SIZE_Z = 16;
+
+constexpr i32 WORLD_SIZE_X = 100;
+constexpr i32 WORLD_SIZE_Y = 100;
+constexpr i32 WORLD_SIZE_Z = 100;
 
 constexpr i32 CHUNK_VOLUME = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
 
 constexpr f32 BLOCK_SIZE = 1.0f;
 
 constexpr f32 PLAYER_HEIGHT = 1.8f;
+constexpr f32 PLAYER_EYE_HEIGHT = 2.55f;
+constexpr f32 PLAYER_RADIUS = 0.3f;
 constexpr f32 PLAYER_SPEED = 4.5f;
 constexpr f32 PLAYER_JUMP_SPEED = 8.0f;
 constexpr f32 GRAVITY = -20.0f;
+constexpr f32 MAX_FALL_SPEED = 30.0f;
 
 constexpr f32 MOUSE_SENSITIVITY = 0.002f;
 constexpr f32 FOV = 75.0f;

@@ -1,25 +1,23 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec2 TexCoord;
-in vec3 Normal;
 in vec3 FragPos;
 
-uniform sampler2D uTexture;
-uniform vec3 uLightDir;
-uniform vec3 uLightColor;
-uniform float uAmbientStrength;
+uniform vec3 uColor;
 
 void main() {
-    vec3 ambient = uAmbientStrength * uLightColor;
+    vec3 dist = min(fract(FragPos), 1.0 - fract(FragPos));
 
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(-uLightDir);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * uLightColor;
+    // Face normal direction has dist ≈ 0 — ignore it so only the
+    // two varying axes contribute to the edge line.
+    vec3 masked = mix(dist, vec3(1.0), step(dist, vec3(0.001)));
 
-    vec4 texColor = texture(uTexture, TexCoord);
-    vec3 result = (ambient + diffuse) * texColor.rgb;
+    float edgeDist = min(min(masked.x, masked.y), masked.z);
+    float edgeWidth = 0.04;
+    float t = 1.0 - smoothstep(0.0, edgeWidth, edgeDist);
 
-    FragColor = vec4(result, texColor.a);
+    vec3 edgeColor = vec3(0.05);
+    vec3 color = mix(uColor, edgeColor, t);
+
+    FragColor = vec4(color, 1.0);
 }

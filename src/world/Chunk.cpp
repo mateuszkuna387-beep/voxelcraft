@@ -1,7 +1,19 @@
 #include "Chunk.h"
 #include "Block.h"
 
-#include <glm/glm.hpp>
+struct CubeFace {
+    i32 dx, dy, dz;
+    f32 verts[12];
+};
+
+static const CubeFace s_faces[6] = {
+    { 0, 0, 1,  0,0,1, 1,0,1, 1,1,1, 0,1,1 },
+    { 0, 0,-1,  1,0,0, 0,0,0, 0,1,0, 1,1,0 },
+    { 1, 0, 0,  1,0,0, 1,0,1, 1,1,1, 1,1,0 },
+    {-1, 0, 0,  0,0,1, 0,0,0, 0,1,0, 0,1,1 },
+    { 0, 1, 0,  0,1,1, 1,1,1, 1,1,0, 0,1,0 },
+    { 0,-1, 0,  0,0,0, 1,0,0, 1,0,1, 0,0,1 },
+};
 
 Chunk::Chunk(i32 x, i32 z) {
     m_coord = { x, z };
@@ -46,31 +58,36 @@ void Chunk::generateMesh() {
 
     if (m_empty) return;
 
-    // Simplified mesh generation — one quad per visible face
+    f32 ox = static_cast<f32>(m_coord.x * CHUNK_SIZE_X);
+    f32 oz = static_cast<f32>(m_coord.z * CHUNK_SIZE_Z);
+
     for (i32 y = 0; y < CHUNK_SIZE_Y; ++y) {
         for (i32 z = 0; z < CHUNK_SIZE_Z; ++z) {
             for (i32 x = 0; x < CHUNK_SIZE_X; ++x) {
                 BlockID id = m_blocks[index(x, y, z)];
                 if (id == BLOCK_AIR) continue;
 
-                glm::vec3 pos(static_cast<f32>(x),
-                              static_cast<f32>(y),
-                              static_cast<f32>(z));
+                f32 bx = ox + static_cast<f32>(x);
+                f32 by = static_cast<f32>(y);
+                f32 bz = oz + static_cast<f32>(z);
 
-                // Check each face
-                struct { i32 dx, dy, dz; } dirs[] = {
-                    { 0, 0, 1 }, { 0, 0, -1 },
-                    { 1, 0, 0 }, { -1, 0, 0 },
-                    { 0, 1, 0 }, { 0, -1, 0 },
-                };
-
-                for (auto [dx, dy, dz] : dirs) {
-                    if (!shouldRenderFace(x, y, z, dx, dy, dz)) continue;
+                for (const auto& face : s_faces) {
+                    if (!shouldRenderFace(x, y, z, face.dx, face.dy, face.dz)) continue;
 
                     u32 baseIdx = static_cast<u32>(m_mesh.vertices.size() / 3);
 
-                    // Generate face vertices (simplified)
-                    // Placeholder — real implementation would generate proper quads
+                    for (i32 v = 0; v < 4; ++v) {
+                        m_mesh.vertices.push_back(bx + face.verts[v * 3]);
+                        m_mesh.vertices.push_back(by + face.verts[v * 3 + 1]);
+                        m_mesh.vertices.push_back(bz + face.verts[v * 3 + 2]);
+                    }
+
+                    m_mesh.indices.push_back(baseIdx);
+                    m_mesh.indices.push_back(baseIdx + 1);
+                    m_mesh.indices.push_back(baseIdx + 2);
+                    m_mesh.indices.push_back(baseIdx);
+                    m_mesh.indices.push_back(baseIdx + 2);
+                    m_mesh.indices.push_back(baseIdx + 3);
                 }
             }
         }

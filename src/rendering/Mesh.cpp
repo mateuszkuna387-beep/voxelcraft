@@ -9,6 +9,15 @@ Mesh::~Mesh() {
 }
 
 void Mesh::upload() {
+    if (m_vao) {
+        glDeleteVertexArrays(1, &m_vao);
+        glDeleteBuffers(1, &m_vbo);
+        glDeleteBuffers(1, &m_ebo);
+        m_vao = 0;
+        m_vbo = 0;
+        m_ebo = 0;
+    }
+
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ebo);
@@ -32,6 +41,7 @@ void Mesh::upload() {
 }
 
 void Mesh::render() const {
+    if (m_indexCount == 0) return;
     glBindVertexArray(m_vao);
     glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
 }

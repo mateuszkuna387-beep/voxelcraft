@@ -1,4 +1,5 @@
 #include "World.h"
+#include "core/Constants.h"
 #include "rendering/Renderer.h"
 #include "rendering/Camera.h"
 
@@ -11,6 +12,29 @@ World::~World() {
         delete chunk;
     }
     delete m_generator;
+}
+
+bool World::inBounds(i32 x, i32 y, i32 z) {
+    return x >= 0 && x < WORLD_SIZE_X &&
+           y >= 0 && y < WORLD_SIZE_Y &&
+           z >= 0 && z < WORLD_SIZE_Z;
+}
+
+void World::generateWorld() {
+    i32 numChunksX = (WORLD_SIZE_X + CHUNK_SIZE_X - 1) / CHUNK_SIZE_X;
+    i32 numChunksZ = (WORLD_SIZE_Z + CHUNK_SIZE_Z - 1) / CHUNK_SIZE_Z;
+    for (i32 cx = 0; cx < numChunksX; ++cx) {
+        for (i32 cz = 0; cz < numChunksZ; ++cz) {
+            loadChunk(cx, cz);
+        }
+    }
+
+    for (auto& [coord, chunk] : m_chunks) {
+        if (!chunk->isEmpty()) {
+            chunk->generateMesh();
+            chunk->uploadMesh();
+        }
+    }
 }
 
 void World::render(Renderer* renderer, Camera* camera) {
@@ -27,33 +51,29 @@ void World::render(Renderer* renderer, Camera* camera) {
 }
 
 void World::setBlock(i32 x, i32 y, i32 z, BlockID id) {
+    if (!inBounds(x, y, z)) return;
+
     i32 cx = x >> 4;
     i32 cz = z >> 4;
-    if (cx < 0) cx--;
-    if (cz < 0) cz--;
 
     auto it = m_chunks.find({ cx, cz });
     if (it != m_chunks.end()) {
         i32 lx = x & 15;
         i32 lz = z & 15;
-        if (lx < 0) lx += 16;
-        if (lz < 0) lz += 16;
         it->second->setBlock(lx, y, lz, id);
     }
 }
 
 BlockID World::getBlock(i32 x, i32 y, i32 z) const {
+    if (!inBounds(x, y, z)) return BLOCK_AIR;
+
     i32 cx = x >> 4;
     i32 cz = z >> 4;
-    if (cx < 0) cx--;
-    if (cz < 0) cz--;
 
     auto it = m_chunks.find({ cx, cz });
     if (it != m_chunks.end()) {
         i32 lx = x & 15;
         i32 lz = z & 15;
-        if (lx < 0) lx += 16;
-        if (lz < 0) lz += 16;
         return it->second->getBlock(lx, y, lz);
     }
     return BLOCK_AIR;

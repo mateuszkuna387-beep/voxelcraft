@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Input.h"
 #include "rendering/Renderer.h"
+#include "rendering/Shader.h"
 #include "rendering/Camera.h"
 #include "world/World.h"
 #include "player/Player.h"
@@ -24,6 +25,7 @@ private:
     Window m_window;
     Input m_input;
     Renderer* m_renderer = nullptr;
+    Shader* m_shader = nullptr;
     Camera* m_camera = nullptr;
     World* m_world = nullptr;
     Player* m_player = nullptr;

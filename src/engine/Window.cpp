@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include <glad/gl.h>
+
 #include <iostream>
 
 bool Window::init(u32 width, u32 height, const char* title) {
@@ -22,6 +24,17 @@ bool Window::init(u32 width, u32 height, const char* title) {
     }
 
     glfwMakeContextCurrent(m_window);
+
+    if (!gladLoadGL(glfwGetProcAddress)) {
+        std::cerr << "Failed to initialize GLAD" << std::endl;
+        glfwDestroyWindow(m_window);
+        m_window = nullptr;
+        glfwTerminate();
+        return false;
+    }
+
+    glfwSwapInterval(1); // vsync on
+
     m_width = width;
     m_height = height;
 
