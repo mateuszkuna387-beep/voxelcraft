@@ -71,15 +71,18 @@ void Chunk::generateMesh() {
                 f32 by = static_cast<f32>(y);
                 f32 bz = oz + static_cast<f32>(z);
 
-                for (const auto& face : s_faces) {
+                for (i32 fi = 0; fi < 6; ++fi) {
+                    const auto& face = s_faces[fi];
                     if (!shouldRenderFace(x, y, z, face.dx, face.dy, face.dz)) continue;
 
-                    u32 baseIdx = static_cast<u32>(m_mesh.vertices.size() / 3);
+                    f32 faceIdx = static_cast<f32>(fi);
+                    u32 baseIdx = static_cast<u32>(m_mesh.vertices.size() / 4);
 
                     for (i32 v = 0; v < 4; ++v) {
                         m_mesh.vertices.push_back(bx + face.verts[v * 3]);
                         m_mesh.vertices.push_back(by + face.verts[v * 3 + 1]);
                         m_mesh.vertices.push_back(bz + face.verts[v * 3 + 2]);
+                        m_mesh.vertices.push_back(faceIdx);
                     }
 
                     m_mesh.indices.push_back(baseIdx);

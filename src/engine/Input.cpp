@@ -14,6 +14,14 @@ bool Input::isKeyHeld(i32 key) const {
     return glfwGetKey(m_window->handle(), key) == GLFW_PRESS;
 }
 
+void Input::getMousePosition(f64& x, f64& y) const {
+    glfwGetCursorPos(m_window->handle(), &x, &y);
+}
+
+bool Input::isMouseButtonPressed(i32 button) const {
+    return glfwGetMouseButton(m_window->handle(), button) == GLFW_PRESS;
+}
+
 void Input::getMouseDelta(f64& dx, f64& dy) {
     f64 x, y;
     glfwGetCursorPos(m_window->handle(), &x, &y);

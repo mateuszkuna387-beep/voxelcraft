@@ -16,6 +16,8 @@ public:
 
     void setMat4(const std::string& name, const glm::mat4& value) const;
     void setVec3(const std::string& name, const glm::vec3& value) const;
+    void setVec4(const std::string& name, const glm::vec4& value) const;
+    void setInt(const std::string& name, i32 value) const;
 
     u32 id() const { return m_id; }
 

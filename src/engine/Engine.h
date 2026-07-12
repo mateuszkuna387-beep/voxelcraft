@@ -7,6 +7,7 @@
 #include "rendering/Camera.h"
 #include "world/World.h"
 #include "player/Player.h"
+#include "gui/Menu.h"
 
 class Engine {
 public:
@@ -29,7 +30,9 @@ private:
     Camera* m_camera = nullptr;
     World* m_world = nullptr;
     Player* m_player = nullptr;
+    Menu m_menu;
 
     bool m_running = false;
+    bool m_prevEscape = false;
     f32 m_lastFrameTime = 0.0f;
 };

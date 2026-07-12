@@ -5,6 +5,7 @@ set(TEST_SOURCES
     world/TerrainGeneratorTest.cpp
     rendering/CameraTest.cpp
     player/PlayerTest.cpp
+    gui/MenuTest.cpp
 )
 
 add_executable(run_tests ${TEST_SOURCES})

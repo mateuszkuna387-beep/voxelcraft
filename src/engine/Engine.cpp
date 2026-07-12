@@ -16,6 +16,20 @@ bool Engine::init(u32 width, u32 height, const char* title) {
 
     m_input.init(&m_window);
 
+    if (!m_menu.init()) {
+        std::cerr << "Failed to initialize menu" << std::endl;
+        return false;
+    }
+
+    m_menu.onResume([this]() {
+        m_menu.toggle();
+        m_window.setCursorMode(GLFW_CURSOR_DISABLED);
+    });
+
+    m_menu.onExit([this]() {
+        m_running = false;
+    });
+
     m_renderer = new Renderer();
     m_shader = new Shader();
     if (!m_shader->load("assets/shaders/block.vert", "assets/shaders/block.frag")) {
@@ -55,6 +69,7 @@ void Engine::run() {
 }
 
 void Engine::shutdown() {
+    m_menu.destroy();
     delete m_player;
     delete m_world;
     delete m_camera;
@@ -64,8 +79,22 @@ void Engine::shutdown() {
 }
 
 void Engine::handleInput(f32 dt) {
-    if (m_input.isKeyPressed(GLFW_KEY_ESCAPE)) {
-        m_running = false;
+    (void)dt;
+
+    bool currF1 = m_input.isKeyPressed(GLFW_KEY_F1);
+    if (currF1 && !m_prevEscape) {
+        m_menu.toggle();
+        if (m_menu.isOpen()) {
+            m_window.setCursorMode(GLFW_CURSOR_NORMAL);
+        } else {
+            m_window.setCursorMode(GLFW_CURSOR_DISABLED);
+        }
+    }
+    m_prevEscape = currF1;
+
+    if (m_menu.isOpen()) {
+        m_menu.handleInput(m_input, m_window);
+        return;
     }
 
     f64 dx, dy;
@@ -91,6 +120,8 @@ void Engine::handleInput(f32 dt) {
 }
 
 void Engine::update(f32 dt) {
+    if (m_menu.isOpen()) return;
+
     m_player->update(dt, m_world);
     m_camera->follow(m_player->position(), m_player->rotation());
 }
@@ -108,4 +139,9 @@ void Engine::render() {
     m_shader->setVec3("uColor", glm::vec3(0.6f, 0.6f, 0.6f));
 
     m_world->render(m_renderer, m_camera);
+
+    if (m_menu.isOpen()) {
+        m_menu.render(static_cast<f32>(m_window.width()),
+                      static_cast<f32>(m_window.height()));
+    }
 }

@@ -52,4 +52,5 @@ void Window::destroy() {
 void Window::pollEvents() { glfwPollEvents(); }
 void Window::swapBuffers() { glfwSwapBuffers(m_window); }
 bool Window::shouldClose() const { return glfwWindowShouldClose(m_window); }
+void Window::setCursorMode(i32 mode) { glfwSetInputMode(m_window, GLFW_CURSOR, mode); }
 GLFWwindow* Window::handle() const { return m_window; }

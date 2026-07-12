@@ -16,6 +16,7 @@ public:
     void pollEvents();
     void swapBuffers();
     bool shouldClose() const;
+    void setCursorMode(i32 mode);
     GLFWwindow* handle() const;
 
     u32 width() const { return m_width; }

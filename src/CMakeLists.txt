@@ -17,6 +17,9 @@ set(LIB_SOURCES
 
     player/Player.cpp
     player/Inventory.cpp
+
+    gui/Font.cpp
+    gui/Menu.cpp
 )
 
 add_library(VoxelCraftLib STATIC ${LIB_SOURCES})
