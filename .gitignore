@@ -46,3 +46,9 @@ glad.zip
 glad_gen.zip
 glad_gen/
 glad_src/
+
+# Debug / temp files (AI session artifacts)
+build_errors.txt
+stderr.txt
+stdout.txt
+nul

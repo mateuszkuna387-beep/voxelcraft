@@ -15,7 +15,7 @@ constexpr i32 CHUNK_VOLUME = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
 constexpr f32 BLOCK_SIZE = 1.0f;
 
 constexpr f32 PLAYER_HEIGHT = 1.8f;
-constexpr f32 PLAYER_EYE_HEIGHT = 2.55f;
+constexpr f32 PLAYER_EYE_HEIGHT = 1.6f;
 constexpr f32 PLAYER_RADIUS = 0.3f;
 constexpr f32 PLAYER_SPEED = 4.5f;
 constexpr f32 PLAYER_JUMP_SPEED = 8.0f;
