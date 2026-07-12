@@ -48,8 +48,7 @@ cmake --build build_release
 - Pisz testy równolegle z implementacją (TDD w miarę możliwości)
 
 ## Commit rules
-- Commity tylko na wyraźne żądanie użytkownika
-- NIGDY nie commitować bez pytania
+- Commity po każdej zmianie w kodzie (po przejściu testów) — pytanie tylko jeśli zmiana jest nieoczywista
 - NIGDY nie używać `git commit --amend` na pushniętych commitach
 - Prefixy: `init:`, `feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`
 
@@ -59,7 +58,10 @@ cmake --build build_release
 3. Nie dodawaj komentarzy do kodu (chyba że poproszono)
 4. Nie twórz plików dokumentacji na własną rękę
 5. Jeśli nie wiesz jak działa fragment — szukaj w sąsiednich plikach
-6. Po każdej większej zmianie uruchom testy
+6. **Zmiana → testy → commit → push**: po KAŻDEJ zmianie w kodzie:
+   - Napisz testy które sprawdzają tę zmianę
+   - Uruchom `cmake --build build --target run_tests`
+   - Commit i push dopiero gdy WSZYSTKIE testy przejdą
 
 ## Struktura katalogów
 ```
