@@ -29,6 +29,12 @@ constexpr f32 FAR_PLANE = 1000.0f;
 
 constexpr i32 RENDER_DISTANCE = 8;
 
+constexpr i32 INVENTORY_SLOTS = 5;
+constexpr i32 INVENTORY_MAX_STACK = 100;
+constexpr f32 RAYCAST_DISTANCE = 10.0f;
+constexpr f32 BASE_BREAK_TIME = 10.0f;
+constexpr f32 BLOCK_HIGHLIGHT_DISTANCE = 3.0f;
+
 constexpr BlockID BLOCK_AIR = 0;
 constexpr BlockID BLOCK_STONE = 1;
 constexpr BlockID BLOCK_DIRT = 2;

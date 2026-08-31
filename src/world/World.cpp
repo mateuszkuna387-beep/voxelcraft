@@ -1,7 +1,11 @@
 #include "World.h"
+#include "Block.h"
 #include "core/Constants.h"
 #include "rendering/Renderer.h"
 #include "rendering/Camera.h"
+
+#include <cmath>
+#include <cfloat>
 
 World::World() {
     m_generator = new TerrainGenerator();
@@ -97,4 +101,63 @@ void World::unloadChunk(i32 cx, i32 cz) {
 Chunk* World::getChunk(i32 cx, i32 cz) {
     auto it = m_chunks.find({ cx, cz });
     return it != m_chunks.end() ? it->second : nullptr;
+}
+
+bool World::raycast(const glm::vec3& origin, const glm::vec3& dir,
+                    f32 maxDist, i32& hitX, i32& hitY, i32& hitZ,
+                    i32& prevX, i32& prevY, i32& prevZ) {
+    World* self = this;
+    f32 x = origin.x;
+    f32 y = origin.y;
+    f32 z = origin.z;
+
+    i32 bx = static_cast<i32>(std::floor(x));
+    i32 by = static_cast<i32>(std::floor(y));
+    i32 bz = static_cast<i32>(std::floor(z));
+
+    i32 stepX = (dir.x > 0) ? 1 : -1;
+    i32 stepY = (dir.y > 0) ? 1 : -1;
+    i32 stepZ = (dir.z > 0) ? 1 : -1;
+
+    f32 tDeltaX = (dir.x != 0) ? std::fabs(1.0f / dir.x) : FLT_MAX;
+    f32 tDeltaY = (dir.y != 0) ? std::fabs(1.0f / dir.y) : FLT_MAX;
+    f32 tDeltaZ = (dir.z != 0) ? std::fabs(1.0f / dir.z) : FLT_MAX;
+
+    f32 tMaxX = (dir.x != 0)
+        ? ((dir.x > 0 ? static_cast<f32>(bx) + 1.0f : static_cast<f32>(bx)) - x) / dir.x
+        : FLT_MAX;
+    f32 tMaxY = (dir.y != 0)
+        ? ((dir.y > 0 ? static_cast<f32>(by) + 1.0f : static_cast<f32>(by)) - y) / dir.y
+        : FLT_MAX;
+    f32 tMaxZ = (dir.z != 0)
+        ? ((dir.z > 0 ? static_cast<f32>(bz) + 1.0f : static_cast<f32>(bz)) - z) / dir.z
+        : FLT_MAX;
+
+    for (i32 i = 0; i < 100; ++i) {
+        if (inBounds(bx, by, bz)) {
+            BlockID id = getBlock(bx, by, bz);
+            if (id != BLOCK_AIR && Block::get(id).solid) {
+                hitX = bx; hitY = by; hitZ = bz;
+                prevX = bx - stepX; prevY = by - stepY; prevZ = bz - stepZ;
+                return true;
+            }
+        }
+
+        prevX = bx; prevY = by; prevZ = bz;
+
+        if (tMaxX < tMaxY) {
+            if (tMaxX > maxDist) return false;
+            bx += stepX;
+            tMaxX += tDeltaX;
+        } else if (tMaxY < tMaxZ) {
+            if (tMaxY > maxDist) return false;
+            by += stepY;
+            tMaxY += tDeltaY;
+        } else {
+            if (tMaxZ > maxDist) return false;
+            bz += stepZ;
+            tMaxZ += tDeltaZ;
+        }
+    }
+    return false;
 }

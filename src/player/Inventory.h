@@ -14,7 +14,12 @@ public:
     void addBlock(BlockID id, i32 count);
     bool removeBlock(BlockID id, i32 count);
 
-    static constexpr i32 HOTBAR_SIZE = 9;
+    i32 slotCount(i32 index) const;
+    BlockID slotID(i32 index) const;
+    i32 selectedSlot() const { return m_selectedSlot; }
+
+    static constexpr i32 HOTBAR_SIZE = 5;
+    static constexpr i32 MAX_STACK = 100;
 
 private:
     struct Slot {

@@ -3,6 +3,7 @@
 #include "player/Player.h"
 #include "world/World.h"
 #include "world/Chunk.h"
+#include "world/Block.h"
 #include "core/Constants.h"
 
 static void clearChunk(Chunk* chunk) {
@@ -485,6 +486,98 @@ TEST(PlayerTest, DoesNotSinkAfterLandingManyFrames) {
 
     EXPECT_NEAR(player.position().y, 1.0f, 0.02f);
     EXPECT_TRUE(player.isOnGround());
+}
+
+TEST(PlayerTest, BreakTimerStartsAtZero) {
+    Player player;
+    BlockCoord target{ 5, 1, 5 };
+    player.startBreak(target);
+    EXPECT_TRUE(player.isBreaking());
+    EXPECT_FLOAT_EQ(player.breakProgress(), 0.0f);
+    EXPECT_EQ(player.breakingBlock().x, 5);
+    EXPECT_EQ(player.breakingBlock().y, 1);
+    EXPECT_EQ(player.breakingBlock().z, 5);
+}
+
+TEST(PlayerTest, BreakProgressIncreasesOverTime) {
+    World world;
+    world.loadChunk(0, 0);
+    Chunk* chunk = world.getChunk(0, 0);
+    ASSERT_NE(chunk, nullptr);
+    clearChunk(chunk);
+    world.setBlock(5, 1, 5, BLOCK_STONE);
+
+    Player player;
+    player.startBreak({ 5, 1, 5 });
+    player.updateBreak(5.0f, &world);
+    EXPECT_TRUE(player.isBreaking());
+    EXPECT_GT(player.breakProgress(), 0.0f);
+    EXPECT_LT(player.breakProgress(), 1.0f);
+}
+
+TEST(PlayerTest, BlockBreaksAfterFullDuration) {
+    World world;
+    world.loadChunk(0, 0);
+    Chunk* chunk = world.getChunk(0, 0);
+    ASSERT_NE(chunk, nullptr);
+    clearChunk(chunk);
+    world.setBlock(5, 1, 5, BLOCK_STONE);
+
+    Player player;
+    player.startBreak({ 5, 1, 5 });
+    player.updateBreak(10.0f, &world);
+    EXPECT_FALSE(player.isBreaking());
+    EXPECT_EQ(world.getBlock(5, 1, 5), BLOCK_AIR);
+}
+
+TEST(PlayerTest, BlockBreaksAndAddsToInventory) {
+    World world;
+    world.loadChunk(0, 0);
+    Chunk* chunk = world.getChunk(0, 0);
+    ASSERT_NE(chunk, nullptr);
+    clearChunk(chunk);
+    world.setBlock(5, 1, 5, BLOCK_STONE);
+
+    Player player;
+    i32 prevCount = player.inventory().slotCount(1);
+    player.startBreak({ 5, 1, 5 });
+    player.updateBreak(10.0f, &world);
+    EXPECT_EQ(player.inventory().slotID(2), BLOCK_STONE);
+    EXPECT_EQ(player.inventory().slotCount(2), 1);
+}
+
+TEST(PlayerTest, CancelBreakResetsState) {
+    Player player;
+    player.startBreak({ 5, 1, 5 });
+    EXPECT_TRUE(player.isBreaking());
+    player.cancelBreak();
+    EXPECT_FALSE(player.isBreaking());
+    EXPECT_FLOAT_EQ(player.breakProgress(), 0.0f);
+}
+
+TEST(PlayerTest, BreakProgressReturnsToOneThenResets) {
+    World world;
+    world.loadChunk(0, 0);
+    Chunk* chunk = world.getChunk(0, 0);
+    ASSERT_NE(chunk, nullptr);
+    clearChunk(chunk);
+    world.setBlock(5, 1, 5, BLOCK_STONE);
+
+    Player player;
+    player.startBreak({ 5, 1, 5 });
+    player.updateBreak(10.0f, &world);
+    EXPECT_FALSE(player.isBreaking());
+    EXPECT_FLOAT_EQ(player.breakProgress(), 0.0f);
+}
+
+TEST(PlayerTest, InventoryHas5Slots) {
+    Player player;
+    EXPECT_EQ(player.inventory().HOTBAR_SIZE, 5);
+}
+
+TEST(PlayerTest, InventorySlotsMax100) {
+    Player player;
+    EXPECT_EQ(player.inventory().MAX_STACK, 100);
 }
 
 TEST(PlayerTest, DoesNotClipThroughGroundWhenFallingFromHeight) {

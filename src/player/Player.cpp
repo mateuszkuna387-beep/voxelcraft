@@ -2,8 +2,35 @@
 #include "world/World.h"
 #include "world/Block.h"
 #include "core/Constants.h"
+
 Player::Player() {
     m_position = glm::vec3(0.0f, 64.0f, 0.0f);
+}
+
+void Player::startBreak(BlockCoord target) {
+    m_breakingBlock = target;
+    m_breakTimer = 0.0f;
+    m_isBreaking = true;
+}
+
+void Player::updateBreak(f32 dt, World* world) {
+    if (!m_isBreaking) return;
+
+    m_breakTimer += dt;
+
+    if (m_breakTimer >= m_breakDuration) {
+        BlockID broken = world->getBlock(m_breakingBlock.x, m_breakingBlock.y, m_breakingBlock.z);
+        if (broken != BLOCK_AIR) {
+            world->setBlock(m_breakingBlock.x, m_breakingBlock.y, m_breakingBlock.z, BLOCK_AIR);
+            m_inventory.addBlock(broken, 1);
+        }
+        cancelBreak();
+    }
+}
+
+void Player::cancelBreak() {
+    m_isBreaking = false;
+    m_breakTimer = 0.0f;
 }
 
 void Player::move(const glm::vec3& direction, f32 dt) {

@@ -23,6 +23,13 @@ private:
     void update(f32 dt);
     void render();
 
+    void updateBlockTarget();
+    void updateBlockBreaking(f32 dt);
+    void renderBlockHighlight();
+    void renderBreakOverlay();
+    void renderCrosshair(f32 screenWidth, f32 screenHeight);
+    void renderQuad(f32 x, f32 y, f32 w, f32 h, const glm::vec4& color);
+
     Window m_window;
     Input m_input;
     Renderer* m_renderer = nullptr;
@@ -34,5 +41,31 @@ private:
 
     bool m_running = false;
     bool m_prevEscape = false;
+    bool m_prevLMB = false;
     f32 m_lastFrameTime = 0.0f;
+
+    // Block targeting and breaking
+    bool m_hasTarget = false;
+    i32 m_targetX = 0, m_targetY = 0, m_targetZ = 0;
+    i32 m_placeX = 0, m_placeY = 0, m_placeZ = 0;
+
+    bool m_isBreaking = false;
+    i32 m_breakX = 0, m_breakY = 0, m_breakZ = 0;
+    BlockID m_breakBlockType = BLOCK_AIR;
+    f32 m_breakTimer = 0.0f;
+    f32 m_breakDuration = 0.0f;
+
+    // Overlay rendering
+    u32 m_overlayVAO = 0;
+    u32 m_overlayVBO = 0;
+    u32 m_overlayEBO = 0;
+    u32 m_overlayIndexCount = 0;
+    u32 m_wireframeVAO = 0;
+    u32 m_wireframeVBO = 0;
+
+    // Crosshair
+    u32 m_crosshairVAO = 0;
+    u32 m_crosshairVBO = 0;
+    Shader* m_guiShader = nullptr;
+    u32 m_whiteTex = 0;
 };

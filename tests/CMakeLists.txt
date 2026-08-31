@@ -4,8 +4,11 @@ set(TEST_SOURCES
     world/BlockTest.cpp
     world/TerrainGeneratorTest.cpp
     rendering/CameraTest.cpp
+    rendering/ShaderTest.cpp
     player/PlayerTest.cpp
+    player/InventoryTest.cpp
     gui/MenuTest.cpp
+    engine/EngineTest.cpp
 )
 
 add_executable(run_tests ${TEST_SOURCES})
