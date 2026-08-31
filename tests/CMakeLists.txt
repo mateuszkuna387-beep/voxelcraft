@@ -10,6 +10,7 @@ set(TEST_SOURCES
     player/InventoryTest.cpp
     gui/MenuTest.cpp
     engine/EngineTest.cpp
+    engine/CameraResumeTest.cpp
 )
 
 add_executable(run_tests ${TEST_SOURCES})

@@ -18,9 +18,21 @@ public:
     void run();
     void shutdown();
 
-private:
     void handleInput(f32 dt);
     void update(f32 dt);
+
+    Window& window() { return m_window; }
+    const Window& window() const { return m_window; }
+    Input& input() { return m_input; }
+    const Input& input() const { return m_input; }
+    Camera* camera() { return m_camera; }
+    const Camera* camera() const { return m_camera; }
+    Player* player() { return m_player; }
+    const Player* player() const { return m_player; }
+    Menu& menu() { return m_menu; }
+    const Menu& menu() const { return m_menu; }
+
+private:
     void render();
 
     void updateBlockTarget();

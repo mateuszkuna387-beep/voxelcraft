@@ -11,6 +11,7 @@
 
 class Window;
 class Input;
+class CameraResumeTest;
 
 class Menu {
 public:
@@ -28,6 +29,8 @@ public:
 
     void onResume(std::function<void()> callback) { m_onResume = callback; }
     void onExit(std::function<void()> callback) { m_onExit = callback; }
+
+    friend class CameraResumeTest;
 
 private:
     struct Button {
