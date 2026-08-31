@@ -37,3 +37,7 @@ void Input::getMouseDelta(f64& dx, f64& dy) {
     m_lastMouseX = x;
     m_lastMouseY = y;
 }
+
+void Input::resetMouseDelta() {
+    m_firstMouse = true;
+}

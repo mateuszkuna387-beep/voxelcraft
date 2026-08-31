@@ -17,6 +17,7 @@ public:
     void getMouseDelta(f64& dx, f64& dy);
     void getMousePosition(f64& x, f64& y) const;
     bool isMouseButtonPressed(i32 button) const;
+    void resetMouseDelta();
 
 private:
     Window* m_window = nullptr;

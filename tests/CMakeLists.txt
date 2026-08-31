@@ -5,6 +5,7 @@ set(TEST_SOURCES
     world/TerrainGeneratorTest.cpp
     rendering/CameraTest.cpp
     rendering/ShaderTest.cpp
+    rendering/HighlightVisualTest.cpp
     player/PlayerTest.cpp
     player/InventoryTest.cpp
     gui/MenuTest.cpp
