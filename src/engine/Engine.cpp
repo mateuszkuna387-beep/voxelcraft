@@ -13,7 +13,7 @@ Engine::Engine() = default;
 Engine::~Engine() = default;
 
 bool Engine::init(u32 width, u32 height, const char* title) {
-    if (!m_window.init(width, height, title)) {
+    if (!m_window.init(width, height, title, true)) {
         std::cerr << "Failed to create window" << std::endl;
         return false;
     }

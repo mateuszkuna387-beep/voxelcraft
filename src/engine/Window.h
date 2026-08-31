@@ -10,7 +10,7 @@ public:
     Window() = default;
     ~Window() = default;
 
-    bool init(u32 width, u32 height, const char* title);
+    bool init(u32 width, u32 height, const char* title, bool fullscreen = false);
     void destroy();
 
     void pollEvents();
