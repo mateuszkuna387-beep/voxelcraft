@@ -93,20 +93,20 @@ bool Engine::init(u32 width, u32 height, const char* title) {
 
     // Create overlay cube VAO (unit cube from 0,0,0 to 1,1,1)
     {
-        // 6 faces, 4 verts each = 24 verts (position + faceIndex)
+        // 6 faces, 4 verts each = 24 verts (position + faceIndex + blockId)
         f32 overlayVerts[] = {
             // +Z face (face index 0)
-            0,0,1, 0,  1,0,1, 0,  1,1,1, 0,  0,1,1, 0,
+            0,0,1, 0,0,  1,0,1, 0,0,  1,1,1, 0,0,  0,1,1, 0,0,
             // -Z face (face index 1)
-            1,0,0, 1,  0,0,0, 1,  0,1,0, 1,  1,1,0, 1,
+            1,0,0, 1,0,  0,0,0, 1,0,  0,1,0, 1,0,  1,1,0, 1,0,
             // +X face (face index 2)
-            1,0,0, 2,  1,0,1, 2,  1,1,1, 2,  1,1,0, 2,
+            1,0,0, 2,0,  1,0,1, 2,0,  1,1,1, 2,0,  1,1,0, 2,0,
             // -X face (face index 3)
-            0,0,1, 3,  0,0,0, 3,  0,1,0, 3,  0,1,1, 3,
+            0,0,1, 3,0,  0,0,0, 3,0,  0,1,0, 3,0,  0,1,1, 3,0,
             // +Y face (face index 4)
-            0,1,1, 4,  1,1,1, 4,  1,1,0, 4,  0,1,0, 4,
+            0,1,1, 4,0,  1,1,1, 4,0,  1,1,0, 4,0,  0,1,0, 4,0,
             // -Y face (face index 5)
-            0,0,0, 5,  1,0,0, 5,  1,0,1, 5,  0,0,1, 5,
+            0,0,0, 5,0,  1,0,0, 5,0,  1,0,1, 5,0,  0,0,1, 5,0,
         };
         u32 overlayIndices[] = {
             0,1,2, 0,2,3,
@@ -127,11 +127,14 @@ bool Engine::init(u32 width, u32 height, const char* title) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_overlayEBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(overlayIndices), overlayIndices, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), nullptr);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), nullptr);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(f32),
+        glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(f32),
                               reinterpret_cast<void*>(3 * sizeof(f32)));
         glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(f32),
+                              reinterpret_cast<void*>(4 * sizeof(f32)));
+        glEnableVertexAttribArray(2);
 
         m_overlayIndexCount = 36;
     }
@@ -272,6 +275,12 @@ void Engine::handleInput(f32 dt) {
         movement = glm::normalize(movement);
     }
     m_player->move(movement, dt);
+
+    if (m_input.isKeyPressed(GLFW_KEY_1)) m_player->inventory().selectSlot(0);
+    if (m_input.isKeyPressed(GLFW_KEY_2)) m_player->inventory().selectSlot(1);
+    if (m_input.isKeyPressed(GLFW_KEY_3)) m_player->inventory().selectSlot(2);
+    if (m_input.isKeyPressed(GLFW_KEY_4)) m_player->inventory().selectSlot(3);
+    if (m_input.isKeyPressed(GLFW_KEY_5)) m_player->inventory().selectSlot(4);
 }
 
 void Engine::update(f32 dt) {
@@ -285,6 +294,7 @@ void Engine::update(f32 dt) {
 
     updateBlockTarget();
     updateBlockBreaking(dt);
+    updateBlockPlacing();
 }
 
 void Engine::updateBlockTarget() {
@@ -350,6 +360,37 @@ void Engine::updateBlockBreaking(f32 dt) {
         m_isBreaking = false;
         m_breakTimer = 0.0f;
     }
+}
+
+void Engine::updateBlockPlacing() {
+    bool rmbHeld = m_input.isMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT);
+    bool rmbPressed = rmbHeld && !m_prevRMB;
+    m_prevRMB = rmbHeld;
+
+    if (!rmbPressed || !m_hasTarget) return;
+
+    BlockID toPlace = m_player->inventory().currentBlock();
+    if (toPlace == BLOCK_AIR) return;
+
+    if (!World::inBounds(m_placeX, m_placeY, m_placeZ)) return;
+    if (m_world->getBlock(m_placeX, m_placeY, m_placeZ) != BLOCK_AIR) return;
+
+    glm::vec3 pPos = m_player->position();
+    f32 r = PLAYER_RADIUS;
+    f32 h = PLAYER_HEIGHT;
+    bool insidePlayer = (m_placeX + 1 > pPos.x - r && m_placeX < pPos.x + r &&
+                         m_placeY + 1 > pPos.y && m_placeY < pPos.y + h &&
+                         m_placeZ + 1 > pPos.z - r && m_placeZ < pPos.z + r);
+    if (insidePlayer) return;
+
+    glm::vec3 camPos = m_camera->position();
+    glm::vec3 targetPos(static_cast<f32>(m_placeX) + 0.5f,
+                        static_cast<f32>(m_placeY) + 0.5f,
+                        static_cast<f32>(m_placeZ) + 0.5f);
+    if (glm::length(camPos - targetPos) > BLOCK_HIGHLIGHT_DISTANCE + 1.0f) return;
+
+    if (!m_player->inventory().removeBlock(toPlace, 1)) return;
+    m_world->setBlock(m_placeX, m_placeY, m_placeZ, toPlace);
 }
 
 void Engine::render() {

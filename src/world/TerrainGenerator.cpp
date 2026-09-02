@@ -102,10 +102,25 @@ void TerrainGenerator::generate(Chunk* chunk) {
             if (gz < 0 || gz >= WORLD_SIZE_Z) continue;
 
             f32 n = smoothNoise2D(static_cast<f32>(gx) * 0.025f,
-                                  static_cast<f32>(gz) * 0.025f, 4);
+                                   static_cast<f32>(gz) * 0.025f, 4);
             i32 height = static_cast<i32>(n * 30.0f + 35.0f);
             if (height < 2) height = 2;
             if (height >= WORLD_SIZE_Y) height = WORLD_SIZE_Y - 1;
+
+            f32 biome = smoothNoise2D(static_cast<f32>(gx) * 0.012f,
+                                      static_cast<f32>(gz) * 0.012f, 2);
+            BlockID surfaceBlock = BLOCK_GRASS;
+            BlockID subSurfaceBlock = BLOCK_DIRT;
+            if (biome < 0.18f) {
+                surfaceBlock = BLOCK_SAND;
+                subSurfaceBlock = BLOCK_SAND;
+            } else if (biome > 0.82f) {
+                surfaceBlock = BLOCK_STONE;
+                subSurfaceBlock = BLOCK_STONE;
+            } else if (height < 35) {
+                surfaceBlock = BLOCK_SAND;
+                subSurfaceBlock = BLOCK_SAND;
+            }
 
             for (i32 y = 0; y < WORLD_SIZE_Y; ++y) {
                 BlockID id = BLOCK_AIR;
@@ -113,11 +128,11 @@ void TerrainGenerator::generate(Chunk* chunk) {
                 if (y == 0) {
                     id = BLOCK_BEDROCK;
                 } else if (y == height) {
-                    id = BLOCK_GRASS;
+                    id = surfaceBlock;
                 } else if (y < height - 3) {
                     id = BLOCK_STONE;
                 } else if (y < height) {
-                    id = BLOCK_DIRT;
+                    id = subSurfaceBlock;
                 }
 
                 if (id == BLOCK_STONE && y > 1 && y < height - 3) {
@@ -144,6 +159,35 @@ void TerrainGenerator::generate(Chunk* chunk) {
                 }
 
                 chunk->setBlock(x, y, z, id);
+            }
+
+            if (surfaceBlock == BLOCK_GRASS && height + 6 < WORLD_SIZE_Y) {
+                f32 treeHash = hash(gx, gz);
+                if (treeHash > 0.985f) {
+                    i32 trunkHeight = 4 + static_cast<i32>(hash(gx + 1000, gz + 1000) * 2.0f);
+                    for (i32 ty = 1; ty <= trunkHeight; ++ty) {
+                        if (height + ty < WORLD_SIZE_Y) {
+                            chunk->setBlock(x, height + ty, z, BLOCK_WOOD);
+                        }
+                    }
+                    i32 leavesY = height + trunkHeight;
+                    for (i32 dy = 0; dy <= 2; ++dy) {
+                        for (i32 dx = -2; dx <= 2; ++dx) {
+                            for (i32 dz = -2; dz <= 2; ++dz) {
+                                if (dx == 0 && dz == 0 && dy < 2) continue;
+                                if (std::abs(dx) == 2 && std::abs(dz) == 2 && dy == 2) continue;
+                                i32 lx = x + dx;
+                                i32 ly = leavesY + dy;
+                                i32 lz = z + dz;
+                                if (lx < 0 || lx >= CHUNK_SIZE_X || lz < 0 || lz >= CHUNK_SIZE_Z) continue;
+                                if (ly < 0 || ly >= WORLD_SIZE_Y) continue;
+                                if (chunk->getBlock(lx, ly, lz) == BLOCK_AIR) {
+                                    chunk->setBlock(lx, ly, lz, BLOCK_LEAVES);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

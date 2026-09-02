@@ -33,12 +33,12 @@ protected:
         ASSERT_TRUE(s_shader->load("assets/shaders/block.vert", "assets/shaders/block.frag"));
 
         std::vector<f32> vertices = {
-            0,0,0, 0,  1,0,0, 0,  1,1,0, 0,  0,1,0, 0,
-            1,0,0, 1,  0,0,0, 1,  0,1,0, 1,  1,1,0, 1,
-            1,0,0, 2,  1,0,1, 2,  1,1,1, 2,  1,1,0, 2,
-            0,0,1, 3,  0,0,0, 3,  0,1,0, 3,  0,1,1, 3,
-            0,1,1, 4,  1,1,1, 4,  1,1,0, 4,  0,1,0, 4,
-            0,0,0, 5,  1,0,0, 5,  1,0,1, 5,  0,0,1, 5,
+            0,0,0, 0,1,  1,0,0, 0,1,  1,1,0, 0,1,  0,1,0, 0,1,
+            1,0,0, 1,1,  0,0,0, 1,1,  0,1,0, 1,1,  1,1,0, 1,1,
+            1,0,0, 2,1,  1,0,1, 2,1,  1,1,1, 2,1,  1,1,0, 2,1,
+            0,0,1, 3,1,  0,0,0, 3,1,  0,1,0, 3,1,  0,1,1, 3,1,
+            0,1,1, 4,3,  1,1,1, 4,3,  1,1,0, 4,3,  0,1,0, 4,3,
+            0,0,0, 5,1,  1,0,0, 5,1,  1,0,1, 5,1,  0,0,1, 5,1,
         };
         std::vector<u32> indices = {
             0,1,2, 0,2,3,  4,5,6, 4,6,7,  8,9,10, 8,10,11,
@@ -53,10 +53,12 @@ protected:
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(f32), vertices.data(), GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(u32), indices.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), nullptr);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), nullptr);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void*)(3 * sizeof(f32)));
+        glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void*)(3 * sizeof(f32)));
         glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), (void*)(4 * sizeof(f32)));
+        glEnableVertexAttribArray(2);
     }
 
     static void TearDownTestSuite() {

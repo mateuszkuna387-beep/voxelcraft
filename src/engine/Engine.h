@@ -47,6 +47,7 @@ private:
 
     void updateBlockTarget();
     void updateBlockBreaking(f32 dt);
+    void updateBlockPlacing();
     void renderBlockHighlight();
     void renderBreakOverlay();
     void renderDebugBeam();
@@ -67,6 +68,7 @@ private:
     bool m_running = false;
     bool m_prevEscape = false;
     bool m_prevLMB = false;
+    bool m_prevRMB = false;
     bool m_prevDebug = false;
     f32 m_lastFrameTime = 0.0f;
 

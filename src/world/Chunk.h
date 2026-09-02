@@ -21,6 +21,8 @@ public:
 
     const ChunkCoord& coord() const { return m_coord; }
     bool meshDirty() const { return m_meshDirty; }
+    const Mesh& mesh() const { return m_mesh; }
+    const Mesh& getMeshForTest() const { return m_mesh; }
 
 private:
     i32 index(i32 x, i32 y, i32 z) const;

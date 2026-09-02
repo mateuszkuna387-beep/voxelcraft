@@ -76,13 +76,15 @@ void Chunk::generateMesh() {
                     if (!shouldRenderFace(x, y, z, face.dx, face.dy, face.dz)) continue;
 
                     f32 faceIdx = static_cast<f32>(fi);
-                    u32 baseIdx = static_cast<u32>(m_mesh.vertices.size() / 4);
+                    f32 blockIdF = static_cast<f32>(id);
+                    u32 baseIdx = static_cast<u32>(m_mesh.vertices.size() / 5);
 
                     for (i32 v = 0; v < 4; ++v) {
                         m_mesh.vertices.push_back(bx + face.verts[v * 3]);
                         m_mesh.vertices.push_back(by + face.verts[v * 3 + 1]);
                         m_mesh.vertices.push_back(bz + face.verts[v * 3 + 2]);
                         m_mesh.vertices.push_back(faceIdx);
+                        m_mesh.vertices.push_back(blockIdF);
                     }
 
                     m_mesh.indices.push_back(baseIdx);

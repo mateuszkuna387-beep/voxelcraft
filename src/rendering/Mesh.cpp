@@ -34,13 +34,16 @@ void Mesh::upload() {
                  indices.size() * sizeof(u32),
                  indices.data(), GL_STATIC_DRAW);
 
-    constexpr i32 STRIDE = 4 * sizeof(f32);
+    constexpr i32 STRIDE = 5 * sizeof(f32);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, STRIDE, nullptr);
     glEnableVertexAttribArray(0);
 
     glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, STRIDE, reinterpret_cast<void*>(3 * sizeof(f32)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, STRIDE, reinterpret_cast<void*>(4 * sizeof(f32)));
+    glEnableVertexAttribArray(2);
 
     m_indexCount = static_cast<u32>(indices.size());
 }
