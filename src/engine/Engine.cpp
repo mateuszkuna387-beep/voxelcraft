@@ -609,6 +609,38 @@ void Engine::renderBlockHighlight() {
     model = glm::translate(model, glm::vec3(-0.5f, -0.5f, -0.5f));
     glm::mat4 mvp = proj * view * model;
 
+    BlockID targetId = m_world->getBlock(m_targetX, m_targetY, m_targetZ);
+    f32 blockIdF = static_cast<f32>(targetId);
+    glBindVertexArray(m_overlayVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_overlayVBO);
+    // Update blockId component (5th float) for all 24 vertices
+    {
+        std::vector<f32> verts;
+        verts.reserve(24 * 5);
+        f32 base[24][4] = {
+            {0,0,1,0}, {1,0,1,0}, {1,1,1,0}, {0,1,1,0},
+            {1,0,0,1}, {0,0,0,1}, {0,1,0,1}, {1,1,0,1},
+            {1,0,0,2}, {1,0,1,2}, {1,1,1,2}, {1,1,0,2},
+            {0,0,1,3}, {0,0,0,3}, {0,1,0,3}, {0,1,1,3},
+            {0,1,1,4}, {1,1,1,4}, {1,1,0,4}, {0,1,0,4},
+            {0,0,0,5}, {1,0,0,5}, {1,0,1,5}, {0,0,1,5}
+        };
+        for (int i = 0; i < 24; ++i) {
+            verts.push_back(base[i][0]);
+            verts.push_back(base[i][1]);
+            verts.push_back(base[i][2]);
+            verts.push_back(base[i][3]);
+            verts.push_back(blockIdF);
+        }
+        glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(f32), verts.data(), GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), nullptr);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), reinterpret_cast<void*>(3 * sizeof(f32)));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), reinterpret_cast<void*>(4 * sizeof(f32)));
+        glEnableVertexAttribArray(2);
+    }
+
     m_shader->use();
     m_shader->setVec3("uCameraPos", m_camera->position());
     m_shader->setMat4("uMVP", mvp);
@@ -634,6 +666,36 @@ void Engine::renderBreakOverlay() {
     model = glm::scale(model, glm::vec3(1.0f));
     model = glm::translate(model, glm::vec3(-0.5f, -0.5f, -0.5f));
     glm::mat4 mvp = proj * view * model;
+
+    f32 blockIdF = static_cast<f32>(m_breakBlockType);
+    glBindVertexArray(m_overlayVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_overlayVBO);
+    {
+        std::vector<f32> verts;
+        verts.reserve(24 * 5);
+        f32 base[24][4] = {
+            {0,0,1,0}, {1,0,1,0}, {1,1,1,0}, {0,1,1,0},
+            {1,0,0,1}, {0,0,0,1}, {0,1,0,1}, {1,1,0,1},
+            {1,0,0,2}, {1,0,1,2}, {1,1,1,2}, {1,1,0,2},
+            {0,0,1,3}, {0,0,0,3}, {0,1,0,3}, {0,1,1,3},
+            {0,1,1,4}, {1,1,1,4}, {1,1,0,4}, {0,1,0,4},
+            {0,0,0,5}, {1,0,0,5}, {1,0,1,5}, {0,0,1,5}
+        };
+        for (int i = 0; i < 24; ++i) {
+            verts.push_back(base[i][0]);
+            verts.push_back(base[i][1]);
+            verts.push_back(base[i][2]);
+            verts.push_back(base[i][3]);
+            verts.push_back(blockIdF);
+        }
+        glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(f32), verts.data(), GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), nullptr);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), reinterpret_cast<void*>(3 * sizeof(f32)));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(f32), reinterpret_cast<void*>(4 * sizeof(f32)));
+        glEnableVertexAttribArray(2);
+    }
 
     m_shader->use();
     m_shader->setVec3("uCameraPos", m_camera->position());
