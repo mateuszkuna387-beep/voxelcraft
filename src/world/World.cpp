@@ -106,9 +106,10 @@ Chunk* World::getChunk(i32 cx, i32 cz) {
 bool World::raycast(const glm::vec3& origin, const glm::vec3& dir,
                     f32 maxDist, i32& hitX, i32& hitY, i32& hitZ,
                     i32& prevX, i32& prevY, i32& prevZ) {
-    f32 x = origin.x;
-    f32 y = origin.y;
-    f32 z = origin.z;
+    constexpr f32 EPS = 0.0005f;
+    f32 x = origin.x + dir.x * EPS;
+    f32 y = origin.y + dir.y * EPS;
+    f32 z = origin.z + dir.z * EPS;
 
     i32 bx = static_cast<i32>(std::floor(x));
     i32 by = static_cast<i32>(std::floor(y));
@@ -146,17 +147,25 @@ bool World::raycast(const glm::vec3& origin, const glm::vec3& dir,
         prevX = bx; prevY = by; prevZ = bz;
 
         if (tMaxX < tMaxY) {
-            if (tMaxX > maxDist) return false;
-            bx += stepX;
-            tMaxX += tDeltaX;
-        } else if (tMaxY < tMaxZ) {
-            if (tMaxY > maxDist) return false;
-            by += stepY;
-            tMaxY += tDeltaY;
+            if (tMaxX < tMaxZ) {
+                if (tMaxX > maxDist) return false;
+                bx += stepX;
+                tMaxX += tDeltaX;
+            } else {
+                if (tMaxZ > maxDist) return false;
+                bz += stepZ;
+                tMaxZ += tDeltaZ;
+            }
         } else {
-            if (tMaxZ > maxDist) return false;
-            bz += stepZ;
-            tMaxZ += tDeltaZ;
+            if (tMaxY < tMaxZ) {
+                if (tMaxY > maxDist) return false;
+                by += stepY;
+                tMaxY += tDeltaY;
+            } else {
+                if (tMaxZ > maxDist) return false;
+                bz += stepZ;
+                tMaxZ += tDeltaZ;
+            }
         }
     }
     return false;

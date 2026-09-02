@@ -12,6 +12,7 @@ set(TEST_SOURCES
     engine/EngineTest.cpp
     engine/CameraResumeTest.cpp
     engine/RaycastTest.cpp
+    engine/CenterSelectionTest.cpp
 )
 
 add_executable(run_tests ${TEST_SOURCES})

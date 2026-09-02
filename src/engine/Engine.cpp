@@ -461,9 +461,9 @@ void Engine::renderBlockHighlight() {
     glm::mat4 proj = m_camera->projectionMatrix();
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f),
-        glm::vec3(static_cast<f32>(m_targetX), static_cast<f32>(m_targetY), static_cast<f32>(m_targetZ)));
-    // Scale slightly larger to avoid z-fighting with world block
+        glm::vec3(static_cast<f32>(m_targetX) + 0.5f, static_cast<f32>(m_targetY) + 0.5f, static_cast<f32>(m_targetZ) + 0.5f));
     model = glm::scale(model, glm::vec3(1.01f));
+    model = glm::translate(model, glm::vec3(-0.5f, -0.5f, -0.5f));
     glm::mat4 mvp = proj * view * model;
 
     m_shader->use();
@@ -487,7 +487,9 @@ void Engine::renderBreakOverlay() {
     glm::mat4 proj = m_camera->projectionMatrix();
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f),
-        glm::vec3(static_cast<f32>(m_breakX), static_cast<f32>(m_breakY), static_cast<f32>(m_breakZ)));
+        glm::vec3(static_cast<f32>(m_breakX) + 0.5f, static_cast<f32>(m_breakY) + 0.5f, static_cast<f32>(m_breakZ) + 0.5f));
+    model = glm::scale(model, glm::vec3(1.0f));
+    model = glm::translate(model, glm::vec3(-0.5f, -0.5f, -0.5f));
     glm::mat4 mvp = proj * view * model;
 
     m_shader->use();
