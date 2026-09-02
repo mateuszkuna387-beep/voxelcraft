@@ -95,23 +95,21 @@ TEST_F(BlockPlacementTest, DifferentBlocksHaveDifferentHardness) {
 }
 
 TEST_F(BlockPlacementTest, WorldGeneratesVariedBlocks) {
-    World w;
-    w.generateWorld();
-    bool foundGrass=false, foundDirt=false, foundStone=false, foundSand=false;
-    for(int x=0;x<WORLD_SIZE_X;x+=4){
-        for(int z=0;z<WORLD_SIZE_Z;z+=4){
-            for(int y=1;y<WORLD_SIZE_Y;y++){
-                BlockID id = w.getBlock(x,y,z);
+    TerrainGenerator gen(42);
+    Chunk chunk(0,0);
+    gen.generate(&chunk);
+    bool foundGrass=false, foundDirt=false, foundStone=false;
+    for(int y=0;y<CHUNK_SIZE_Y;y++){
+        for(int x=0;x<CHUNK_SIZE_X;x++){
+            for(int z=0;z<CHUNK_SIZE_Z;z++){
+                BlockID id = chunk.getBlock(x,y,z);
                 if(id==BLOCK_GRASS) foundGrass=true;
                 if(id==BLOCK_DIRT) foundDirt=true;
                 if(id==BLOCK_STONE) foundStone=true;
-                if(id==BLOCK_SAND) foundSand=true;
             }
         }
     }
     EXPECT_TRUE(foundGrass);
     EXPECT_TRUE(foundDirt);
     EXPECT_TRUE(foundStone);
-    int variedCount = (foundGrass?1:0)+(foundDirt?1:0)+(foundStone?1:0)+(foundSand?1:0);
-    EXPECT_GE(variedCount, 3) << "World should generate at least 3 different surface block types (grass/dirt/stone/sand) for visual variety";
 }

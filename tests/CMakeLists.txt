@@ -14,6 +14,7 @@ set(TEST_SOURCES
     engine/RaycastTest.cpp
     engine/CenterSelectionTest.cpp
     engine/BlockPlacementTest.cpp
+    engine/BlockDestroyTest.cpp
     world/BlockTypeTest.cpp
 )
 

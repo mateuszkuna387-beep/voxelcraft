@@ -7,6 +7,7 @@
 #include "rendering/Renderer.h"
 #include "rendering/Shader.h"
 #include "rendering/Camera.h"
+#include "rendering/BlockParticle.h"
 #include "world/World.h"
 #include "player/Player.h"
 #include "gui/Menu.h"
@@ -108,4 +109,7 @@ private:
     u32 m_debugLineVAO = 0;
     u32 m_debugLineVBO = 0;
     Font m_font;
+
+    BlockParticleSystem m_particles;
+    f32 m_particleSpawnTimer = 0.0f;
 };

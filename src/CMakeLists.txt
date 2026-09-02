@@ -8,6 +8,7 @@ set(LIB_SOURCES
     rendering/Texture.cpp
     rendering/Camera.cpp
     rendering/Mesh.cpp
+    rendering/BlockParticle.cpp
 
     world/World.cpp
     world/Chunk.cpp

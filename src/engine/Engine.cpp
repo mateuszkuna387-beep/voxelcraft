@@ -175,6 +175,8 @@ bool Engine::init(u32 width, u32 height, const char* title) {
         glEnableVertexAttribArray(0);
     }
 
+    m_particles.init();
+
     m_running = true;
     m_lastFrameTime = static_cast<f32>(glfwGetTime());
 
@@ -196,6 +198,7 @@ void Engine::run() {
 }
 
 void Engine::shutdown() {
+    m_particles.shutdown();
     if (m_overlayVAO) glDeleteVertexArrays(1, &m_overlayVAO);
     if (m_overlayVBO) glDeleteBuffers(1, &m_overlayVBO);
     if (m_overlayEBO) glDeleteBuffers(1, &m_overlayEBO);
@@ -295,6 +298,7 @@ void Engine::update(f32 dt) {
     updateBlockTarget();
     updateBlockBreaking(dt);
     updateBlockPlacing();
+    m_particles.update(dt);
 }
 
 void Engine::updateBlockTarget() {
@@ -334,7 +338,7 @@ void Engine::updateBlockBreaking(f32 dt) {
             m_isBreaking = false;
             return;
         }
-        m_breakDuration = BASE_BREAK_TIME * data.hardness;
+        m_breakDuration = m_debugMode ? 0.0f : BASE_BREAK_TIME * data.hardness;
         m_breakTimer = 0.0f;
     }
 
@@ -348,13 +352,26 @@ void Engine::updateBlockBreaking(f32 dt) {
             m_isBreaking = false;
             return;
         }
-        m_breakDuration = BASE_BREAK_TIME * data.hardness;
+        m_breakDuration = m_debugMode ? 0.0f : BASE_BREAK_TIME * data.hardness;
         m_breakTimer = 0.0f;
     }
 
-    m_breakTimer += dt;
+    if (m_debugMode) {
+        m_breakTimer = m_breakDuration;
+    } else {
+        m_breakTimer += dt;
+    }
+
+    m_particleSpawnTimer += dt;
+    if (m_particleSpawnTimer > 0.08f) {
+        m_particleSpawnTimer = 0.0f;
+        glm::vec3 center(static_cast<f32>(m_breakX) + 0.5f, static_cast<f32>(m_breakY) + 0.5f, static_cast<f32>(m_breakZ) + 0.5f);
+        m_particles.spawn(center, m_breakBlockType, 3);
+    }
 
     if (m_breakTimer >= m_breakDuration) {
+        glm::vec3 center(static_cast<f32>(m_breakX) + 0.5f, static_cast<f32>(m_breakY) + 0.5f, static_cast<f32>(m_breakZ) + 0.5f);
+        m_particles.spawn(center, m_breakBlockType, 16);
         m_world->setBlock(m_breakX, m_breakY, m_breakZ, BLOCK_AIR);
         m_player->inventory().addBlock(m_breakBlockType, 1);
         m_isBreaking = false;
@@ -410,6 +427,13 @@ void Engine::render() {
     m_shader->setMat4("uModel", model);
 
     m_world->render(m_renderer, m_camera);
+
+    {
+        glm::mat4 view = m_camera->viewMatrix();
+        glm::mat4 proj = m_camera->projectionMatrix();
+        glm::mat4 mvp = proj * view;
+        m_particles.render(mvp);
+    }
 
     // ---- Render block highlight and break overlay ----
     if (m_hasTarget && !m_menu.isOpen()) {
