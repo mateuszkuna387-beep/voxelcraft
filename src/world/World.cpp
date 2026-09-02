@@ -106,7 +106,6 @@ Chunk* World::getChunk(i32 cx, i32 cz) {
 bool World::raycast(const glm::vec3& origin, const glm::vec3& dir,
                     f32 maxDist, i32& hitX, i32& hitY, i32& hitZ,
                     i32& prevX, i32& prevY, i32& prevZ) {
-    World* self = this;
     f32 x = origin.x;
     f32 y = origin.y;
     f32 z = origin.z;
@@ -114,6 +113,7 @@ bool World::raycast(const glm::vec3& origin, const glm::vec3& dir,
     i32 bx = static_cast<i32>(std::floor(x));
     i32 by = static_cast<i32>(std::floor(y));
     i32 bz = static_cast<i32>(std::floor(z));
+    prevX = bx; prevY = by; prevZ = bz;
 
     i32 stepX = (dir.x > 0) ? 1 : -1;
     i32 stepY = (dir.y > 0) ? 1 : -1;
@@ -138,7 +138,7 @@ bool World::raycast(const glm::vec3& origin, const glm::vec3& dir,
             BlockID id = getBlock(bx, by, bz);
             if (id != BLOCK_AIR && Block::get(id).solid) {
                 hitX = bx; hitY = by; hitZ = bz;
-                prevX = bx - stepX; prevY = by - stepY; prevZ = bz - stepZ;
+                // prevX, prevY, prevZ already hold the previous block position from line 146
                 return true;
             }
         }

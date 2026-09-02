@@ -67,6 +67,12 @@ bool Engine::init(u32 width, u32 height, const char* title) {
         return false;
     }
 
+    m_debugLineShader = new Shader();
+    if (!m_debugLineShader->load("assets/shaders/debug_line.vert", "assets/shaders/debug_line.frag")) {
+        std::cerr << "Failed to load debug line shaders" << std::endl;
+        return false;
+    }
+
     m_camera = new Camera(width, height);
     m_camera->setPosition(glm::vec3(5.0f, 14.0f, 18.0f));
 
@@ -75,6 +81,11 @@ bool Engine::init(u32 width, u32 height, const char* title) {
 
     m_player = new Player();
     m_player->setPosition(glm::vec3(50.0f, 70.0f, 90.0f));
+
+    if (!m_font.init()) {
+        std::cerr << "Failed to initialize font" << std::endl;
+        return false;
+    }
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
@@ -147,6 +158,20 @@ bool Engine::init(u32 width, u32 height, const char* title) {
         glEnableVertexAttribArray(0);
     }
 
+    // Create debug line VAO (for raycast beam)
+    {
+        glGenVertexArrays(1, &m_debugLineVAO);
+        glGenBuffers(1, &m_debugLineVBO);
+
+        glBindVertexArray(m_debugLineVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_debugLineVBO);
+        // Will update buffer each frame with raycast line
+        glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(f32), nullptr, GL_DYNAMIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), nullptr);
+        glEnableVertexAttribArray(0);
+    }
+
     m_running = true;
     m_lastFrameTime = static_cast<f32>(glfwGetTime());
 
@@ -173,6 +198,8 @@ void Engine::shutdown() {
     if (m_overlayEBO) glDeleteBuffers(1, &m_overlayEBO);
     if (m_wireframeVAO) glDeleteVertexArrays(1, &m_wireframeVAO);
     if (m_wireframeVBO) glDeleteBuffers(1, &m_wireframeVBO);
+    if (m_debugLineVAO) glDeleteVertexArrays(1, &m_debugLineVAO);
+    if (m_debugLineVBO) glDeleteBuffers(1, &m_debugLineVBO);
 
     if (m_crosshairVAO) glDeleteVertexArrays(1, &m_crosshairVAO);
     if (m_crosshairVBO) glDeleteBuffers(1, &m_crosshairVBO);
@@ -183,6 +210,7 @@ void Engine::shutdown() {
     delete m_world;
     delete m_camera;
     delete m_shader;
+    delete m_debugLineShader;
     delete m_guiShader;
     delete m_renderer;
     m_window.destroy();
@@ -195,12 +223,29 @@ void Engine::handleInput(f32 dt) {
     if (currEscape && !m_prevEscape) {
         m_menu.toggle();
         if (m_menu.isOpen()) {
+            // Save camera state before pause
+            m_savedCameraPosition = m_camera->position();
+            m_savedCameraRotation = m_camera->rotation();
+            m_hasSavedCameraState = true;
             m_window.setCursorMode(GLFW_CURSOR_NORMAL);
         } else {
+            // Restore camera state on resume
+            if (m_hasSavedCameraState) {
+                m_camera->setPosition(m_savedCameraPosition);
+                m_camera->setRotation(m_savedCameraRotation);
+                m_input.resetMouseDelta();
+                m_skipNextCameraFollow = true;
+            }
             m_window.setCursorMode(GLFW_CURSOR_DISABLED);
         }
     }
     m_prevEscape = currEscape;
+
+    bool currDebug = m_input.isKeyPressed(GLFW_KEY_B);
+    if (currDebug && !m_prevDebug) {
+        m_debugMode = !m_debugMode;
+    }
+    m_prevDebug = currDebug;
 
     if (m_menu.isOpen()) {
         m_menu.handleInput(m_input, m_window);
@@ -233,7 +278,10 @@ void Engine::update(f32 dt) {
     if (m_menu.isOpen()) return;
 
     m_player->update(dt, m_world);
-    m_camera->follow(m_player->position(), m_player->rotation());
+    if (!m_skipNextCameraFollow) {
+        m_camera->follow(m_player->position(), m_player->rotation());
+    }
+    m_skipNextCameraFollow = false;
 
     updateBlockTarget();
     updateBlockBreaking(dt);
@@ -245,7 +293,7 @@ void Engine::updateBlockTarget() {
 
     glm::vec3 dir;
     dir.x = std::sin(rot.y) * std::cos(rot.x);
-    dir.y = std::sin(rot.x);
+    dir.y = -std::sin(rot.x);
     dir.z = -std::cos(rot.y) * std::cos(rot.x);
     dir = glm::normalize(dir);
 
@@ -310,23 +358,25 @@ void Engine::render() {
     // ---- Render world ----
     m_shader->use();
     m_shader->setFloat("uOverlay", 0.0f);
+    m_shader->setVec3("uCameraPos", m_camera->position());
 
     glm::mat4 view = m_camera->viewMatrix();
     glm::mat4 proj = m_camera->projectionMatrix();
     glm::mat4 mvp = proj * view;
+    glm::mat4 model = glm::mat4(1.0f);
 
     m_shader->setMat4("uMVP", mvp);
+    m_shader->setMat4("uModel", model);
 
     m_world->render(m_renderer, m_camera);
 
     // ---- Render block highlight and break overlay ----
     if (m_hasTarget && !m_menu.isOpen()) {
-        // Only highlight if player is within 3 blocks
-        glm::vec3 playerPos = m_player->position();
+        glm::vec3 camPos = m_camera->position();
         glm::vec3 targetPos(static_cast<f32>(m_targetX) + 0.5f,
                             static_cast<f32>(m_targetY) + 0.5f,
                             static_cast<f32>(m_targetZ) + 0.5f);
-        f32 dist = glm::length(playerPos - targetPos);
+        f32 dist = glm::length(camPos - targetPos);
         if (dist <= BLOCK_HIGHLIGHT_DISTANCE) {
             renderBlockHighlight();
         }
@@ -345,6 +395,13 @@ void Engine::render() {
     if (m_menu.isOpen()) {
         m_menu.render(static_cast<f32>(m_window.width()),
                       static_cast<f32>(m_window.height()));
+    }
+
+    // ---- Render debug beam ----
+    if (m_debugMode) {
+        renderDebugBeam();
+        renderDebugText(static_cast<f32>(m_window.width()),
+                        static_cast<f32>(m_window.height()));
     }
 }
 
@@ -410,7 +467,9 @@ void Engine::renderBlockHighlight() {
     glm::mat4 mvp = proj * view * model;
 
     m_shader->use();
+    m_shader->setVec3("uCameraPos", m_camera->position());
     m_shader->setMat4("uMVP", mvp);
+    m_shader->setMat4("uModel", model);
     m_shader->setFloat("uOverlay", 0.0f);
     m_shader->setFloat("uHighlight", 1.0f);
 
@@ -432,7 +491,9 @@ void Engine::renderBreakOverlay() {
     glm::mat4 mvp = proj * view * model;
 
     m_shader->use();
+    m_shader->setVec3("uCameraPos", m_camera->position());
     m_shader->setMat4("uMVP", mvp);
+    m_shader->setMat4("uModel", model);
     m_shader->setFloat("uOverlay", progress);
 
     glEnable(GL_BLEND);
@@ -443,4 +504,60 @@ void Engine::renderBreakOverlay() {
 
     glDisable(GL_BLEND);
     m_shader->setFloat("uOverlay", 0.0f);
+}
+
+void Engine::renderDebugBeam() {
+    if (!m_hasTarget) return;
+
+    glm::mat4 view = m_camera->viewMatrix();
+    glm::mat4 proj = m_camera->projectionMatrix();
+    glm::mat4 mvp = proj * view;
+
+    m_debugLineShader->use();
+    m_debugLineShader->setMat4("uMVP", mvp);
+    m_debugLineShader->setVec3("uColor", glm::vec3(1.0f, 1.0f, 0.0f)); // Yellow
+
+    // Create line from camera to target block
+    glm::vec3 camPos = m_camera->position();
+    glm::vec3 targetPos(static_cast<f32>(m_targetX) + 0.5f,
+                        static_cast<f32>(m_targetY) + 0.5f,
+                        static_cast<f32>(m_targetZ) + 0.5f);
+
+    f32 lineVerts[] = {
+        camPos.x, camPos.y, camPos.z,
+        targetPos.x, targetPos.y, targetPos.z
+    };
+
+    glBindVertexArray(m_debugLineVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_debugLineVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(lineVerts), lineVerts);
+
+    glLineWidth(3.0f);
+    glDrawArrays(GL_LINES, 0, 2);
+    glLineWidth(1.0f);
+}
+
+void Engine::renderDebugText(f32 screenWidth, f32 screenHeight) {
+    if (!m_guiShader || !m_font.textureId()) return;
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    m_guiShader->use();
+    m_guiShader->setInt("uTexture", 0);
+
+    glm::mat4 proj = glm::ortho(0.0f, screenWidth, screenHeight, 0.0f, -1.0f, 1.0f);
+    m_guiShader->setMat4("uProjection", proj);
+
+    glBindTexture(GL_TEXTURE_2D, m_font.textureId());
+
+    f32 scale = 2.0f;
+    f32 x = 10.0f;
+    f32 y = 10.0f;
+
+    m_font.renderText("ver 0.0.1", x, y, scale);
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 }
