@@ -16,6 +16,7 @@ set(TEST_SOURCES
     engine/BlockPlacementTest.cpp
     engine/BlockDestroyTest.cpp
     world/BlockTypeTest.cpp
+    gui/HotbarTest.cpp
 )
 
 add_executable(run_tests ${TEST_SOURCES})

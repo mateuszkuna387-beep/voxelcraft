@@ -54,6 +54,7 @@ private:
     void renderDebugBeam();
     void renderDebugText(f32 screenWidth, f32 screenHeight);
     void renderCrosshair(f32 screenWidth, f32 screenHeight);
+    void renderHotbar(f32 screenWidth, f32 screenHeight);
     void renderQuad(f32 x, f32 y, f32 w, f32 h, const glm::vec4& color);
 
     Window m_window;

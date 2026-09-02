@@ -456,6 +456,9 @@ void Engine::render() {
                         static_cast<f32>(m_window.height()));
     }
 
+    renderHotbar(static_cast<f32>(m_window.width()),
+                 static_cast<f32>(m_window.height()));
+
     // ---- Render menu ----
     if (m_menu.isOpen()) {
         m_menu.render(static_cast<f32>(m_window.width()),
@@ -500,6 +503,81 @@ void Engine::renderCrosshair(f32 screenWidth, f32 screenHeight) {
     renderQuad(centerX - thickness * 0.5f, centerY - gap - size, thickness, size, glm::vec4(1.0f, 1.0f, 1.0f, 0.8f));
     // Vertical line (bottom)
     renderQuad(centerX - thickness * 0.5f, centerY + gap, thickness, size, glm::vec4(1.0f, 1.0f, 1.0f, 0.8f));
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Engine::renderHotbar(f32 screenWidth, f32 screenHeight) {
+    if (!m_guiShader || !m_whiteTex || !m_player) return;
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    m_guiShader->use();
+    m_guiShader->setInt("uTexture", 0);
+    glm::mat4 proj = glm::ortho(0.0f, screenWidth, screenHeight, 0.0f, -1.0f, 1.0f);
+    m_guiShader->setMat4("uProjection", proj);
+    glBindTexture(GL_TEXTURE_2D, m_whiteTex);
+
+    const f32 slotSize = 52.0f;
+    const f32 gap = 6.0f;
+    const f32 hotbarW = 5 * slotSize + 4 * gap;
+    const f32 hotbarH = slotSize;
+    const f32 startX = (screenWidth - hotbarW) * 0.5f;
+    const f32 startY = screenHeight - hotbarH - 12.0f;
+
+    Inventory& inv = m_player->inventory();
+    for (i32 i = 0; i < 5; ++i) {
+        f32 x = startX + i * (slotSize + gap);
+        f32 y = startY;
+
+        bool selected = (i == inv.selectedSlot());
+        glm::vec4 bgColor = selected ? glm::vec4(0.85f, 0.85f, 0.85f, 0.95f) : glm::vec4(0.15f, 0.15f, 0.15f, 0.85f);
+        glm::vec4 borderColor = selected ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : glm::vec4(0.35f, 0.35f, 0.35f, 1.0f);
+
+        renderQuad(x - 2.0f, y - 2.0f, slotSize + 4.0f, slotSize + 4.0f, borderColor);
+        renderQuad(x, y, slotSize, slotSize, bgColor);
+
+        BlockID id = inv.slotID(i);
+        i32 count = inv.slotCount(i);
+        if (id != BLOCK_AIR && count > 0) {
+            const BlockData& data = Block::get(id);
+            glm::vec3 col = data.sideColor;
+            if (id == BLOCK_GRASS) col = data.topColor;
+            glm::vec4 iconColor(col.r, col.g, col.b, 1.0f);
+            f32 iconSize = 32.0f;
+            f32 iconX = x + (slotSize - iconSize) * 0.5f;
+            f32 iconY = y + 6.0f;
+            renderQuad(iconX, iconY, iconSize, iconSize, iconColor);
+
+            std::string countStr = std::to_string(count);
+            f32 scale = 1.6f;
+            f32 charW = 9.0f * scale;
+            f32 textW = static_cast<f32>(countStr.size()) * charW;
+            f32 textX = x + slotSize - textW - 4.0f;
+            f32 textY = y + slotSize - 10.0f * scale;
+            if (m_font.textureId() != 0) {
+                glBindTexture(GL_TEXTURE_2D, m_font.textureId());
+                m_guiShader->setVec4("uColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                m_font.renderText(countStr, textX, textY, scale);
+                glBindTexture(GL_TEXTURE_2D, m_whiteTex);
+            }
+        }
+
+        if (selected) {
+            renderQuad(x, y + slotSize - 3.0f, slotSize, 3.0f, glm::vec4(1.0f, 0.85f, 0.2f, 1.0f));
+        }
+
+        std::string numStr = std::to_string(i + 1);
+        if (m_font.textureId() != 0) {
+            glBindTexture(GL_TEXTURE_2D, m_font.textureId());
+            m_guiShader->setVec4("uColor", glm::vec4(1.0f, 1.0f, 1.0f, 0.7f));
+            m_font.renderText(numStr, x + 4.0f, y + 4.0f, 1.2f);
+            glBindTexture(GL_TEXTURE_2D, m_whiteTex);
+        }
+    }
 
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
