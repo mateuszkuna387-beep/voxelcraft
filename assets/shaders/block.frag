@@ -64,7 +64,7 @@ void main() {
     color = mix(color, FOG_COLOR, fogFactor);
 
     if (uHighlight > 0.0) {
-        color = mix(color, HIGHLIGHT_COLOR, 0.25);
+        color = mix(color, HIGHLIGHT_COLOR, 0.15);
     }
 
     if (uOverlay > 0.0) {
